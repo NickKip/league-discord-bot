@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": true
+    },
+    "compileOnSave": true
+}

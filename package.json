@@ -1,0 +1,19 @@
+{
+  "name": "lol-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": ".\\src\\index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/request": "0.0.42",
+    "@types/simple-oauth2": "^1.0.2",
+    "discord.js": "^11.0.0",
+    "jsdom": "^10.0.0",
+    "request": "^2.81.0"
+  }
+}
