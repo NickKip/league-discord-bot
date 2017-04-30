@@ -29,6 +29,20 @@ ${champs[9] || ''}
 \`\`\``;
         return res;
     }
+    static ListSubscriptions(subscriptions) {
+        let title = `Current Subscriptions`;
+        let subs = [];
+        subscriptions.forEach((sub, key) => {
+            subs.push(`Discord User: ${key} - Summoner: ${sub.summonerName}`);
+        });
+        let res = `\`\`\`Markdown
+# ${title}
+
+${subs.toString().replace(",", "\\r")}
+\`\`\`
+        `;
+        return res;
+    }
 }
 exports.Formatter = Formatter;
 //# sourceMappingURL=Formatter.js.map

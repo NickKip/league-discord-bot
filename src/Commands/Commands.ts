@@ -5,7 +5,8 @@ export class Commands {
     static Cmd: Array<string> = [
         "!register",
         "!remove",
-        "!testgame"
+        "!list",
+        //"!testgame"
     ];
 
     static RegisterArgs: Map<string, string[]> = new Map([

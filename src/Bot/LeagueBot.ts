@@ -50,29 +50,37 @@ export class LeagueBot {
      * @param msg - Discord.Message
      */
     private onMessage(msg: Discord.Message): void {
-        console.log(`Author: ${msg.author.username}, ${msg.content}`);
+        if(msg.channel.type === "dm") {
+            console.log(`Author: ${msg.author.username}, ${msg.content}`);
 
-        let cmd = null;
+            let cmd = null;
 
-        for(let c of Commands.Cmd) {
-            if(msg.content.indexOf(c) > -1) {
-                cmd = c;
-                break;
-            }
-        }
-
-        if(cmd) {
-            switch(cmd) {
-                case "!register":
-                    this.registerUser(msg);
+            for(let c of Commands.Cmd) {
+                if(msg.content.indexOf(c) > -1) {
+                    cmd = c;
                     break;
-                case "!testgame": 
-                    this.getCurrentGame(0, "", msg.author);
-                    break;
+                }
             }
+
+            if(cmd) {
+                switch(cmd) {
+                    case "!register":
+                        this.registerUser(msg);
+                        break;
+                    case "!remove":
+                        this.removeSubscription(msg);
+                        break;
+                    case "!list":
+                        this.listSubscriptions(msg);
+                        break;
+                    case "!testgame": 
+                        this.getCurrentGame(0, "", msg.author);
+                        break;
+                }
+            }
+            else
+                msg.channel.sendMessage(`You can't talk to me, try issuing one of these commands: ${Formatter.CommandFormatter(Commands.Cmd)}`);
         }
-        else
-            msg.channel.sendMessage(`You can't talk to me, try issuing one of these commands: ${Formatter.CommandFormatter(Commands.Cmd)}`);
     }
 
     /**
@@ -174,6 +182,19 @@ export class LeagueBot {
             user.sendMessage(`${summonerName} is not in a game right now!`);
 
         return;
+    }
+
+    removeSubscription(msg: Discord.Message): void {
+        let discordUser = msg.author.username;
+        this.subscriptions.delete(discordUser);
+        msg.author.sendMessage(`You have been removed from the subscription and will no longer get updates. Add yourself back with \`!register your-summoner-name\`.`);
+    }
+
+    listSubscriptions(msg: Discord.Message): void {
+        if(this.subscriptions.size > 0)
+            msg.author.sendMessage(Formatter.ListSubscriptions(this.subscriptions));
+        else
+            msg.author.sendMessage(`${this.bot.user.username} does not have any subscriptions yet. :( Be the first with \`!register your-summoner-name\`!`);
     }
 
     /**

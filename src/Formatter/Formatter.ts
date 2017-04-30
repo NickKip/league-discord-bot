@@ -1,4 +1,5 @@
 import { LeagueGame } from "../_types/LeagueGame";
+import { Subscription } from "../_types/Subscription";
 
 export class Formatter {
     static CommandFormatter(cmds: string[]): string {
@@ -32,6 +33,27 @@ ${champs[7] || ''}
 ${champs[8] || ''}
 ${champs[9] || ''}
 \`\`\``;
+
+        return res;
+    }
+
+    static ListSubscriptions(subscriptions: Map<string, Subscription>): string {
+        let title = `Current Subscriptions`;
+
+        let subs = [];
+        
+        subscriptions.forEach((sub, key) => {
+            subs.push(`Discord User: ${key} - Summoner: ${sub.summonerName}`);
+        });
+
+        let res = `\`\`\`Markdown
+# ${title}
+
+${
+subs.toString().replace(",", "\\r")
+}
+\`\`\`
+        `;
 
         return res;
     }
