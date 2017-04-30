@@ -22,7 +22,6 @@ class LeagueBot {
         this.subscriptions = new Map();
         this.riotApi = new Riot_1.Riot();
         this.gameApi = new LolSkill_1.LolSkill();
-        this.bot.on("ready", () => { this.onConnect(); });
         this.bot.on("message", (msg) => {
             if (msg.author.username !== this.bot.user.username)
                 this.onMessage(msg);
@@ -31,9 +30,11 @@ class LeagueBot {
             this.onPresenceUpdate(oldMember, newMember);
         });
     }
-    onConnect() {
-        console.log(`${Config_1.Config.BotName} ready to go!`);
-    }
+    /**
+     * An event that is fired every time the bot receives a message
+     *
+     * @param msg - Discord.Message
+     */
     onMessage(msg) {
         console.log(`Author: ${msg.author.username}, ${msg.content}`);
         let cmd = null;
@@ -49,24 +50,33 @@ class LeagueBot {
                     this.registerUser(msg);
                     break;
                 case "!testgame":
-                    this.getCurrentGame(33088517, "NHONHA ChikCen", msg.author);
+                    this.getCurrentGame(50377422, "yolo til you die", msg.author);
                     break;
             }
         }
         else
             msg.channel.sendMessage(`You can't talk to me, try issuing one of these commands: ${Formatter_1.Formatter.CommandFormatter(Commands_1.Commands.Cmd)}`);
     }
+    /**
+     * This event is triggered whenever a user in the guild changes presence
+     *
+     * @param o - the previous Discord presence of the user
+     * @param n - the updated Discord presence of the user
+     */
     onPresenceUpdate(o, n) {
         if (n.presence && n.presence.game) {
             if (n.presence.game.name === Config_1.Config.LeagueGameName) {
-                let discordUser = n.user.username;
-                let sub = this.subscriptions.get(discordUser);
-                if (sub) {
+                let sub = this.subscriptions.get(n.user.username);
+                if (sub)
                     this.getCurrentGame(sub.summonerId, sub.summonerName, n.user);
-                }
             }
         }
     }
+    /**
+     * Registers your interest in subscribing to a users game
+     *
+     * @param msg - the originating Discord message
+     */
     registerUser(msg) {
         return __awaiter(this, void 0, void 0, function* () {
             let summoner = msg.content.split("!register ")[1];
@@ -93,11 +103,16 @@ class LeagueBot {
                 else
                     msg.channel.sendMessage(`You are already subscribed to summoner: \`${summoner}\`! Please remove this subscription first.`);
             }
-            Logger_1.Logger.obj(this.subscriptions);
-            Logger_1.Logger.obj(this.games);
             return;
         });
     }
+    /**
+     * Gets information about the current game and sends this back as a chat message
+     *
+     * @param summonerId
+     * @param summonerName
+     * @param user
+     */
     getCurrentGame(summonerId, summonerName, user) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.champions === undefined)
@@ -105,6 +120,7 @@ class LeagueBot {
             let game = yield this.riotApi.isInGame(summonerId);
             let teamId = 100;
             if (game) {
+                let page = yield this.gameApi.get(summonerName);
                 let summonersInGame = game.participants.map((el) => {
                     if (el.summonerId === summonerId)
                         teamId = el.teamId;
@@ -113,15 +129,10 @@ class LeagueBot {
                         id: el.summonerId,
                         champion: this.champions[el.championId],
                         team: el.teamId,
-                        champScore: 0,
-                        champPerf: ''
+                        champScore: parseInt(page.querySelector(`div[data-summoner-id="${el.summonerId}"] .skillscore`).innerHTML.replace(",", "")),
+                        champPerf: page.querySelector(`div[data-summoner-id="${el.summonerId}"] .stats .stat`).innerHTML
                     };
                 });
-                let page = yield this.gameApi.get(summonerName);
-                for (let s of summonersInGame) {
-                    s.champScore = parseInt(page.querySelector(`div[data-summoner-id="${s.id}"] .skillscore`).innerHTML.replace(",", ""));
-                    s.champPerf = page.querySelector(`div[data-summoner-id="${s.id}"] .stats .stat`).innerHTML;
-                }
                 summonersInGame.sort((a, b) => {
                     return b.champScore - a.champScore;
                 });
@@ -136,6 +147,9 @@ class LeagueBot {
             return;
         });
     }
+    /**
+     * Connects the bot to Discord
+     */
     connect() {
         this.bot.login(Config_1.Config.Token);
     }

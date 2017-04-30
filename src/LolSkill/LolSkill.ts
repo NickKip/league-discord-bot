@@ -1,5 +1,4 @@
 import * as Request from "request";
-//import * as JsDOM from "jsdom";
 import { JSDOM } from "jsdom";
 
 export class LolSkill {

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Request = require("request");
-//import * as JsDOM from "jsdom";
 const jsdom_1 = require("jsdom");
 class LolSkill {
     constructor() {
@@ -41,8 +40,6 @@ class LolSkill {
                 return undefined;
             }
         });
-    }
-    parseDom(dom) {
     }
 }
 exports.LolSkill = LolSkill;

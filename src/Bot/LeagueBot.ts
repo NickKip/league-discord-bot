@@ -67,7 +67,7 @@ export class LeagueBot {
                     this.registerUser(msg);
                     break;
                 case "!testgame": 
-                    this.getCurrentGame(33088517, "NHONHA ChikCen", msg.author);
+                    this.getCurrentGame(0, "", msg.author);
                     break;
             }
         }
@@ -154,8 +154,8 @@ export class LeagueBot {
                     id: el.summonerId,
                     champion: this.champions[el.championId],
                     team: el.teamId,
-                    champScore: parseInt(page.querySelector(`div[data-summoner-id="${s.id}"] .skillscore`).innerHTML.replace(",", "")),
-                    champPerf: page.querySelector(`div[data-summoner-id="${s.id}"] .stats .stat`).innerHTML
+                    champScore: parseInt(page.querySelector(`div[data-summoner-id="${el.summonerId}"] .skillscore`).innerHTML.replace(",", "")),
+                    champPerf: page.querySelector(`div[data-summoner-id="${el.summonerId}"] .stats .stat`).innerHTML
                 }
             });
 
