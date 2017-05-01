@@ -1,7 +1,7 @@
 export type LeagueGame = {
     winChance: string;
     summoners: SummonersInGame[]
-}
+};
 
 export type SummonersInGame = {
     name: string,
@@ -10,4 +10,7 @@ export type SummonersInGame = {
     team: number,
     champScore: number;
     champPerf: string;
-}
+    rank: string;
+    wins: number;
+    losses: number;
+};

@@ -1,0 +1,45 @@
+{
+  "rules": {
+    "arrow-return-shorthand": true,
+    "class-name": true,
+    "comment-format": [true, "check-space"],
+    "curly": [true, "ignore-same-line"],
+    "eofline": true,
+    "import-spacing": true,
+    "indent": [true, "spaces"],
+    "jsdoc-format": true,
+    "no-any": true,
+    "no-consecutive-blank-lines": [true, 1],
+    "no-console": [true, "debug", "log", "info", "error"],
+    "no-debugger": true,
+    "no-duplicate-variable": true,
+    "no-eval": true,
+    "no-internal-module": true,
+    "no-var-keyword": true,
+    "one-line": [true, "check-open-brace", "check-whitespace"],
+    "prefer-const": true,
+    "prefer-method-signature": true,
+    "prefer-template": [true, "allow-single-concat"],
+    "quotemark": [true, "double", "jsx-double"],
+    "semicolon": true,
+    "space-before-function-paren": [true, {"anonymous": "always", "named": "never", "asyncArrow": "always"}],
+    "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+    "triple-equals": [true, "allow-null-check"],
+    "typedef": [true,
+      "call-signature",
+      "parameter",
+      "property-declaration",
+      "variable-declaration",
+      "member-variable-declaration"
+    ],
+    "typedef-whitespace": [true, {
+      "call-signature": "nospace",
+      "index-signature": "nospace",
+      "parameter": "nospace",
+      "property-declaration": "nospace",
+      "variable-declaration": "nospace"
+    }],
+    "variable-name": [false, "ban-keywords", "check-format", "allow-leading-underscore"],
+    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-separator", "check-type"]
+  }
+}

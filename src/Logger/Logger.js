@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Config_1 = require("../Config/Config");
+// tslint:disable no-console
 class Logger {
     static info(msg) {
         if (Config_1.Config.Logging)

@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const Request = require("request");
 const jsdom_1 = require("jsdom");
+// tslint:disable no-any
 class LolSkill {
     constructor() {
         this.uri = "http://www.lolskill.net/game/EUW/";
@@ -33,7 +34,7 @@ class LolSkill {
     get(summonerName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let res = yield this.httpRequest(this.uri + summonerName);
+                const res = yield this.httpRequest(this.uri + summonerName);
                 return res.window.document;
             }
             catch (ex) {

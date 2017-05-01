@@ -1,8 +1,8 @@
 import { LeagueBot } from "./Bot/LeagueBot";
 
-(function() {
+(function (): void {
 
-    const bot = new LeagueBot();
+    const bot: LeagueBot = new LeagueBot();
     bot.connect();
 
 })();

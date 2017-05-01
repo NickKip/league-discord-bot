@@ -6,6 +6,7 @@ Commands.Cmd = [
     "!register",
     "!remove",
     "!list",
+    "!testgame"
 ];
 Commands.RegisterArgs = new Map([
     ["register", ["username"]]

@@ -14,6 +14,7 @@ class Riot {
     constructor() {
         this.apiKey = `?api_key=${Config_1.Config.RiotApiKey}`;
         this.champions = "https://euw1.api.riotgames.com/lol/static-data/v3/champions";
+        this.leagueV2 = "https://euw.api.riotgames.com/api/lol/EUW/v2.5/league/by-summoner/";
         this.summonerV3 = "https://euw1.api.riotgames.com/lol/summoner/v3/summoners/by-name/";
         this.spectatorV3 = "https://euw1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/";
         this.key = Config_1.Config.RiotApiKey;
@@ -22,10 +23,12 @@ class Riot {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 Request(uri, (err, res, body) => {
-                    if (err)
+                    if (err) {
                         reject(err);
-                    else if (res && res.statusCode !== 200)
+                    }
+                    else if (res && res.statusCode !== 200) {
                         reject(err);
+                    }
                     else {
                         resolve(JSON.parse(body));
                     }
@@ -36,9 +39,9 @@ class Riot {
     getChampions() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let champions = yield this.httpRequest(this.champions + this.apiKey);
-                let map = {};
-                for (let c in champions.data) {
+                const champions = yield this.httpRequest(this.champions + this.apiKey);
+                const map = {};
+                for (const c in champions.data) {
                     map[champions.data[c].id] = champions.data[c].name;
                 }
                 return map;
@@ -51,7 +54,7 @@ class Riot {
     getSummonerId(summonerName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let summoner = yield this.httpRequest(this.summonerV3 + summonerName + this.apiKey);
+                const summoner = yield this.httpRequest(this.summonerV3 + summonerName + this.apiKey);
                 return summoner.id;
             }
             catch (ex) {
@@ -62,8 +65,19 @@ class Riot {
     isInGame(summonerId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let game = yield this.httpRequest(this.spectatorV3 + summonerId + this.apiKey);
+                const game = yield this.httpRequest(this.spectatorV3 + summonerId + this.apiKey);
                 return game;
+            }
+            catch (ex) {
+                return undefined;
+            }
+        });
+    }
+    getRankedInfo(summonerIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const league = yield this.httpRequest(`${this.leagueV2}${summonerIds.toString()}/entry${this.apiKey}`);
+                return league;
             }
             catch (ex) {
                 return undefined;
