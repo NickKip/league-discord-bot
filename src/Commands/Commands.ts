@@ -1,15 +1,23 @@
-import * as Discord from "discord.js";
-import { Formatter } from "../Formatter/Formatter";
+import { Config } from "../Config/Config";
 
-export class Commands {
-    static Cmd: Array<string> = [
-        "!register",
-        "!remove",
-        "!list",
-        "!testgame"
-    ];
+export class CommandManager {
 
-    static RegisterArgs: Map<string, string[]> = new Map([
-        ["register", ["username"]]
-    ]);
+    public cmd: string[];
+
+    constructor() {
+
+        this.cmd = [
+            "!register",
+            "!remove",
+            "!list"
+        ];
+
+        if (Config.Debugging) {
+
+            this.cmd = this.cmd.concat([
+                "!tg",
+                "!tpg"
+            ]);
+        }
+    }
 }

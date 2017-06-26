@@ -13,15 +13,19 @@ const Commands_1 = require("../Commands/Commands");
 const Config_1 = require("../Config/Config");
 const Formatter_1 = require("../Formatter/Formatter");
 const Logger_1 = require("../Logger/Logger");
-const LolSkill_1 = require("../LolSkill/LolSkill");
-const Riot_1 = require("../Riot/Riot");
+const GameLogic_1 = require("./GameLogic");
+const DebuggingHelpers_1 = require("../Commands/DebuggingHelpers");
 class LeagueBot {
+    // === Constructor === //
     constructor() {
         this.bot = new Discord.Client();
+        this.commandMgr = new Commands_1.CommandManager();
         this.games = new Map();
         this.subscriptions = new Map();
-        this.riotApi = new Riot_1.Riot();
-        this.gameApi = new LolSkill_1.LolSkill();
+        this.gameLogic = new GameLogic_1.GameLogic();
+        if (Config_1.Config.Debugging) {
+            this.deuggingHelpers = new DebuggingHelpers_1.DebuggingHelpers();
+        }
         this.bot.on("message", (msg) => {
             if (msg.author.username !== this.bot.user.username)
                 this.onMessage(msg);
@@ -30,41 +34,42 @@ class LeagueBot {
             this.onPresenceUpdate(oldMember, newMember);
         });
     }
+    // === Private Methods === //
     /**
      * An event that is fired every time the bot receives a message
      *
      * @param msg - Discord.Message
      */
     onMessage(msg) {
-        if (msg.channel.type === "dm") {
-            Logger_1.Logger.info(`Author: ${msg.author.username}, ${msg.content}`);
-            let cmd = null;
-            for (const c of Commands_1.Commands.Cmd) {
-                if (msg.content.indexOf(c) > -1) {
-                    cmd = c;
-                    break;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (msg.channel.type === "dm") {
+                Logger_1.Logger.info(`Author: ${msg.author.username}, ${msg.content}`);
+                const cmd = msg.content.split(" ")[0];
+                if (cmd && this.commandMgr.cmd.includes(cmd)) {
+                    switch (cmd) {
+                        case "!register":
+                            this.registerUser(msg);
+                            break;
+                        case "!remove":
+                            this.removeSubscription(msg);
+                            break;
+                        case "!list":
+                            this.listSubscriptions(msg);
+                            break;
+                        case "!tg":
+                            const [command, summId, summName] = msg.content.split(" ");
+                            this.getCurrentGame({ summonerId: parseInt(summId), summonerName: summName }, msg.author);
+                            break;
+                        case "!tpg":
+                            const match = yield this.deuggingHelpers.testProcessGame();
+                            msg.author.sendMessage(match ? `Match info found for match: \`${match.gameId}\`.` : `Cannot find match.`);
+                            break;
+                    }
                 }
+                else
+                    msg.channel.sendMessage(`You can't talk to me, try issuing one of these commands: ${Formatter_1.Formatter.CommandFormatter(this.commandMgr.cmd)}`);
             }
-            if (cmd) {
-                switch (cmd) {
-                    case "!register":
-                        this.registerUser(msg);
-                        break;
-                    case "!remove":
-                        this.removeSubscription(msg);
-                        break;
-                    case "!list":
-                        this.listSubscriptions(msg);
-                        break;
-                    case "!testgame":
-                        const [command, summId, summName] = msg.content.split(" ");
-                        this.getCurrentGame(parseInt(summId), summName, msg.author);
-                        break;
-                }
-            }
-            else
-                msg.channel.sendMessage(`You can't talk to me, try issuing one of these commands: ${Formatter_1.Formatter.CommandFormatter(Commands_1.Commands.Cmd)}`);
-        }
+        });
     }
     /**
      * This event is triggered whenever a user in the guild changes presence
@@ -74,15 +79,19 @@ class LeagueBot {
      */
     onPresenceUpdate(o, n) {
         if (n.presence && n.presence.game) {
-            if (n.presence.game.name === Config_1.Config.LeagueGameName) {
-                const sub = this.subscriptions.get(n.user.username);
-                if (sub)
-                    this.getCurrentGame(sub.summonerId, sub.summonerName, n.user);
+            const sub = this.subscriptions.get(n.user.username);
+            if (sub && n.presence.game.name === Config_1.Config.LeagueGameName) {
+                // User has started a new game
+                this.getCurrentGame(sub, n.user);
+            }
+            else if (sub) {
+                // User finished game
+                this.processFinishedGame(sub);
             }
         }
     }
     /**
-     * Registers your interest in subscribing to a users game
+     * Registers your interest in subscribing to a summoners game
      *
      * @param msg - the originating Discord message
      */
@@ -94,10 +103,14 @@ class LeagueBot {
                 msg.channel.sendMessage(`You haven't provided a summoner name, please try: \`!register your-summoner-name\``);
             }
             else {
-                if (this.games.get(summoner) === undefined)
-                    this.games.set(summoner, []);
+                if (this.games.get(summoner) === undefined) {
+                    this.games.set(summoner, {
+                        lastGameId: null,
+                        games: []
+                    });
+                }
                 if (this.subscriptions.get(discordUser) === undefined) {
-                    const summonerId = yield this.riotApi.getSummonerId(summoner);
+                    const summonerId = yield this.gameLogic.getSummonerId(summoner);
                     Logger_1.Logger.info(`Summoner: ${summoner}, ${summonerId}`);
                     if (summonerId) {
                         this.subscriptions.set(discordUser, {
@@ -112,7 +125,6 @@ class LeagueBot {
                 else
                     msg.channel.sendMessage(`You are already subscribed to summoner: \`${summoner}\`! Please remove this subscription first.`);
             }
-            return;
         });
     }
     /**
@@ -122,53 +134,43 @@ class LeagueBot {
      * @param summonerName
      * @param user
      */
-    getCurrentGame(summonerId, summonerName, user) {
+    getCurrentGame(sub, user) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.champions === undefined)
-                this.champions = yield this.riotApi.getChampions();
-            const game = yield this.riotApi.isInGame(summonerId);
-            let teamId = 100;
+            const game = yield this.gameLogic.getCurrentGame(sub.summonerId, sub.summonerName);
             if (game) {
-                const page = yield this.gameApi.get(summonerName);
-                const summIds = [];
-                const summonersInGame = game.participants.map((el) => {
-                    if (el.summonerId === summonerId)
-                        teamId = el.teamId;
-                    summIds.push(el.summonerId);
-                    return {
-                        name: el.summonerName,
-                        id: el.summonerId,
-                        champion: this.champions[el.championId],
-                        team: el.teamId,
-                        champScore: parseInt(page.querySelector(`div[data-summoner-id="${el.summonerId}"] .skillscore`).innerHTML.replace(",", "")),
-                        champPerf: page.querySelector(`div[data-summoner-id="${el.summonerId}"] .stats .stat`).innerHTML,
-                        rank: "",
-                        wins: 0,
-                        losses: 0
-                    };
-                });
-                const league = yield this.riotApi.getRankedInfo(summIds);
-                for (const s of summonersInGame) {
-                    if (league[s.id] !== undefined) {
-                        s.rank = `${league[s.id][0].tier} ${league[s.id][0].entries[0].division}`;
-                        s.wins = league[s.id][0].entries[0].wins;
-                        s.losses = league[s.id][0].entries[0].losses;
-                    }
-                }
-                summonersInGame.sort((a, b) => {
-                    return b.champScore - a.champScore;
-                });
-                const leagueGame = {
-                    winChance: page.querySelector(`div.team-${teamId} .winchance .tooltip`).innerHTML,
-                    summoners: summonersInGame
-                };
-                user.sendMessage(Formatter_1.Formatter.GameResponse(leagueGame, summonerId));
+                this._addGame(sub.summonerName, game);
+                user.sendMessage(Formatter_1.Formatter.GameResponse(game));
             }
             else
-                user.sendMessage(`${summonerName} is not in a game right now!`);
-            return;
+                user.sendMessage(`${sub.summonerName} is not in a game right now!`);
         });
     }
+    processFinishedGame(sub) {
+        const stats = this.games.get(sub.summonerName);
+        const lastGame = stats.games.find(x => x.gameId === stats.lastGameId);
+        if (lastGame && this._isRankedGame(lastGame)) {
+            lastGame.isFinished = true;
+            Logger_1.Logger.info(`Game: ${lastGame.gameId} has finished.`);
+            // TODO: Get some stats on last game for the current player
+        }
+        else {
+            Logger_1.Logger.info(`Last game was not a game we care about, game id was: ${lastGame.gameTypeId}`);
+        }
+    }
+    // === Private Helper Methods === //
+    _addGame(summonerName, game) {
+        const stats = this.games.get(summonerName);
+        stats.lastGameId = game.gameId;
+        stats.games = [
+            game,
+            ...stats.games
+        ];
+        this.games.set(summonerName, stats);
+    }
+    _isRankedGame(game) {
+        return Config_1.Config.GameTypeIds.includes(game.gameTypeId);
+    }
+    // === Public Methods === //
     removeSubscription(msg) {
         const discordUser = msg.author.username;
         this.subscriptions.delete(discordUser);
@@ -178,7 +180,7 @@ class LeagueBot {
         if (this.subscriptions.size > 0)
             msg.author.sendMessage(Formatter_1.Formatter.ListSubscriptions(this.subscriptions));
         else
-            msg.author.sendMessage(`${this.bot.user.username} does not have any subscriptions yet. :( Be the first with \`!register your-summoner-name\`!`);
+            msg.author.sendMessage(`${this.bot.user.username} does not have any subscriptions yet. 😢 Be the first with \`!register your-summoner-name\`!`);
     }
     /**
      * Connects the bot to Discord

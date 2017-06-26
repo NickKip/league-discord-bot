@@ -11,14 +11,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Request = require("request");
 const Config_1 = require("../Config/Config");
 class Riot {
+    // === Constructor === //
     constructor() {
+        // === Private Properties === //
         this.apiKey = `?api_key=${Config_1.Config.RiotApiKey}`;
         this.champions = "https://euw1.api.riotgames.com/lol/static-data/v3/champions";
         this.leagueV2 = "https://euw.api.riotgames.com/api/lol/EUW/v2.5/league/by-summoner/";
+        this.matchV3ByAccount = "https://euw1.api.riotgames.com/lol/match/v3/matchlists/by-account/";
+        this.matchDtoById = "https://euw1.api.riotgames.com/lol/match/v3/matches/";
         this.summonerV3 = "https://euw1.api.riotgames.com/lol/summoner/v3/summoners/by-name/";
         this.spectatorV3 = "https://euw1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/";
-        this.key = Config_1.Config.RiotApiKey;
     }
+    // === Private Methods === //
     httpRequest(uri) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
@@ -36,6 +40,7 @@ class Riot {
             });
         });
     }
+    // === Public Methods === //
     getChampions() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -78,6 +83,28 @@ class Riot {
             try {
                 const league = yield this.httpRequest(`${this.leagueV2}${summonerIds.toString()}/entry${this.apiKey}`);
                 return league;
+            }
+            catch (ex) {
+                return undefined;
+            }
+        });
+    }
+    getMatchesByAccount(accountId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const match = yield this.httpRequest(`${this.matchV3ByAccount}${accountId.toString()}${this.apiKey}`);
+                return match;
+            }
+            catch (ex) {
+                return undefined;
+            }
+        });
+    }
+    getMatchById(gameId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const match = yield this.httpRequest(`${this.matchDtoById}${gameId}${this.apiKey}`);
+                return match;
             }
             catch (ex) {
                 return undefined;

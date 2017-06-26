@@ -13,7 +13,7 @@ class Formatter {
             str += " ";
         return str;
     }
-    static GameResponse(game, summonerId) {
+    static GameResponse(game) {
         const win = `${game.winChance}`;
         const minPad = 5;
         const paddings = {
@@ -23,6 +23,7 @@ class Formatter {
             rank: 0,
             wl: 0
         };
+        // Works out the highest length strings
         for (const s of game.summoners) {
             if (s.champion.length > paddings.name)
                 paddings.name = s.name.length;
@@ -36,7 +37,7 @@ class Formatter {
         for (const p in paddings)
             paddings[p] = paddings[p] + minPad;
         const champs = game.summoners.map((s) => {
-            let name = (s.id === summonerId ? `# ` : ``) + `${s.champion}`;
+            let name = (s.isRegisteredUser ? `# ` : ``) + `${s.champion}`;
             if (name.length < paddings.name)
                 name = this.RightPad(name, paddings.name);
             let champScore = `${s.champScore}`;

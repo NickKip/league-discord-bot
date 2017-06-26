@@ -25,7 +25,7 @@ export class Formatter {
         return str;
     }
 
-    static GameResponse(game: LeagueGame, summonerId: number): string {
+    static GameResponse(game: LeagueGame): string {
         const win: string = `${game.winChance}`;
         const minPad: number = 5;
 
@@ -48,7 +48,7 @@ export class Formatter {
         for (const p in paddings) paddings[p] = paddings[p] + minPad;
 
         const champs: string[] = game.summoners.map((s) => {
-            let name: string = (s.id === summonerId ? `# ` : ``) + `${s.champion}`;
+            let name: string = (s.isRegisteredUser ? `# ` : ``) + `${s.champion}`;
             if (name.length < paddings.name) name = this.RightPad(name, paddings.name);
 
             let champScore: string = `${s.champScore}`;

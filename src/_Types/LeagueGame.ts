@@ -1,6 +1,16 @@
+export type LeagueStats = {
+
+    lastGameId: number;
+    games: LeagueGame[];
+    
+};
+
 export type LeagueGame = {
+    gameId: number;
+    gameTypeId: number;
     winChance: string;
-    summoners: SummonersInGame[]
+    summoners: SummonersInGame[];
+    isFinished: boolean;
 };
 
 export type SummonersInGame = {
@@ -13,4 +23,5 @@ export type SummonersInGame = {
     rank: string;
     wins: number;
     losses: number;
+    isRegisteredUser: boolean;
 };

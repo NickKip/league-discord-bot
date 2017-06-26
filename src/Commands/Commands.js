@@ -1,15 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class Commands {
+const Config_1 = require("../Config/Config");
+class CommandManager {
+    constructor() {
+        this.cmd = [
+            "!register",
+            "!remove",
+            "!list"
+        ];
+        if (Config_1.Config.Debugging) {
+            this.cmd = this.cmd.concat([
+                "!tg",
+                "!tpg"
+            ]);
+        }
+    }
 }
-Commands.Cmd = [
-    "!register",
-    "!remove",
-    "!list",
-    "!testgame"
-];
-Commands.RegisterArgs = new Map([
-    ["register", ["username"]]
-]);
-exports.Commands = Commands;
+exports.CommandManager = CommandManager;
 //# sourceMappingURL=Commands.js.map
